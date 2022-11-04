@@ -1,0 +1,228 @@
+---
+apiVersion: v1
+kind: ServiceAccount
+automountServiceAccountToken: true
+metadata:
+  name: pod-security-webhook
+  namespace: nukleros-admission-system
+  labels:
+    app.kubernetes.io/name: pod-security-webhook
+    app.kubernetes.io/instance: pod-security-webhook
+    app.kubernetes.io/component: pod-security-webhook
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: pod-security-webhook
+  namespace: nukleros-admission-system
+  labels:
+    app.kubernetes.io/name: pod-security-webhook
+    app.kubernetes.io/instance: pod-security-webhook
+    app.kubernetes.io/component: pod-security-webhook
+spec:
+  type: ClusterIP
+  ports:
+    - name: https
+      port: 443
+      protocol: TCP
+      targetPort: 8443
+  selector:
+    app.kubernetes.io/name: pod-security-webhook
+    app.kubernetes.io/instance: pod-security-webhook
+    app.kubernetes.io/component: pod-security-webhook
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: pod-security-webhook
+  namespace: nukleros-admission-system
+data:
+  DEBUG: "false"
+  VALIDATE_VERIFY_DROP_CONTAINER_CAPABILITIES: "true"
+  VALIDATE_VERIFY_ADD_CONTAINER_CAPABILITIES: "true"
+  VALIDATE_HOST_PID: "true"
+  VALIDATE_HOST_IPC: "true"
+  VALIDATE_HOST_NETWORK: "true"
+  VALIDATE_RUN_AS_NON_ROOT: "true"
+  VALIDATE_PRIVILEGED_CONTAINER: "true"
+  VALIDATE_PRIVILEGE_ESCALATION_CONTAINER: "true"
+  TRUSTED_IMAGE_REGISTRY: "ghcr.io"
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: pod-security-webhook
+  namespace: nukleros-admission-system
+  labels:
+    app.kubernetes.io/name: pod-security-webhook
+    app.kubernetes.io/instance: pod-security-webhook
+    app.kubernetes.io/component: pod-security-webhook
+    app.kubernetes.io/purpose: admission-control
+  annotations:
+    configmap.reloader.stakater.com/reload: pod-security-webhook
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: pod-security-webhook
+      app.kubernetes.io/instance: pod-security-webhook
+      app.kubernetes.io/component: pod-security-webhook
+      app.kubernetes.io/purpose: validation-enforcement
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: pod-security-webhook
+        app.kubernetes.io/instance: pod-security-webhook
+        app.kubernetes.io/component: pod-security-webhook
+        app.kubernetes.io/purpose: validation-enforcement
+    spec:
+      affinity:
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+            - weight: 100
+              podAffinityTerm:
+                topologyKey: kubernetes.io/hostname
+                labelSelector:
+                  matchExpressions:
+                    - key: app.kubernetes.io/name
+                      operator: In
+                      values:
+                        - pod-security-webhook
+      nodeSelector:
+        kubernetes.io/os: linux
+      serviceAccountName: pod-security-webhook
+      containers:
+        - name: webhook
+          image: ghcr.io/nukleros/pod-security-webhook:latest
+          imagePullPolicy: IfNotPresent
+          envFrom:
+            - configMapRef:
+                name: pod-security-webhook
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities:
+              drop:
+                - "ALL"
+            runAsNonRoot: true
+            runAsUser: 1001
+          livenessProbe:
+            failureThreshold: 3
+            httpGet:
+              path: /healthz
+              port: 8443
+              scheme: HTTPS
+            initialDelaySeconds: 3
+            periodSeconds: 30
+            successThreshold: 1
+            timeoutSeconds: 1
+          readinessProbe:
+            failureThreshold: 3
+            httpGet:
+              path: /healthz
+              port: 8443
+              scheme: HTTPS
+            initialDelaySeconds: 3
+            periodSeconds: 30
+            successThreshold: 1
+            timeoutSeconds: 1
+          resources:
+            requests:
+              cpu: "25m"
+              memory: "32Mi"
+            limits:
+              cpu: "50m"
+              memory: "64Mi"
+          volumeMounts:
+            - name: pod-security-webhook-certs
+              mountPath: "/ssl_certs"
+              readOnly: true
+      volumes:
+        - name: pod-security-webhook-certs
+          secret:
+            secretName: pod-security-webhook
+            defaultMode: 0440
+---
+apiVersion: admissionregistration.k8s.io/v1
+kind: ValidatingWebhookConfiguration
+metadata:
+  name: pod-security-webhook
+  labels:
+    app.kubernetes.io/name: pod-security-webhook
+    app.kubernetes.io/instance: pod-security-webhook
+    app.kubernetes.io/component: pod-security-webhook
+  annotations:
+    cert-manager.io/inject-ca-from: "nukleros-admission-system/pod-security-webhook"
+webhooks:
+  - name: pod-security-webhook.admission.nukleros.io
+    namespaceSelector:
+      matchExpressions:
+        - key: "kubernetes.io/metadata.name"
+          operator: "NotIn"
+          values:
+            - kube-system
+    objectSelector:
+      matchExpressions:
+        - key: "app.kubernetes.io/name"
+          operator: "NotIn"
+          values:
+            - pod-security-webhook
+    rules:
+      - apiGroups:
+          - "apps"
+        apiVersions:
+          - "v1"
+        operations:
+          - CREATE
+          - UPDATE
+        resources:
+          - "deployments"
+          - "statefulsets"
+          - "daemonsets"
+      - apiGroups:
+          - ""
+        apiVersions:
+          - "v1"
+        operations:
+          - CREATE
+          - UPDATE
+        resources:
+          - "pods"
+      - apiGroups:
+          - "batch"
+        apiVersions:
+          - "v1"
+        operations:
+          - CREATE
+          - UPDATE
+        resources:
+          - "cronjobs"
+          - "jobs"
+    admissionReviewVersions:
+      - "v1"
+    matchPolicy: Equivalent
+    timeoutSeconds: 10
+    failurePolicy: Fail
+    sideEffects: None
+    clientConfig:
+      service:
+        name: pod-security-webhook
+        namespace: nukleros-admission-system
+        path: /validate
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: pod-security-webhook
+  namespace: nukleros-admission-system
+spec:
+  podSelector:
+    matchLabels:
+      app.kubernetes.io/name: pod-security-webhook
+  policyTypes:
+    - Ingress
+    - Egress
+  ingress:
+    - {}
+  egress:
+    - {}

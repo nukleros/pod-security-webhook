@@ -1,0 +1,24 @@
+# NOTE: this is a sample cert-manager certificate that may be used to deploy the
+#       webhook.
+---
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: pod-security-webhook
+  namespace: nukleros-admission-system
+spec:
+  commonName: pod-security-webhook.nukleros-admission-system.svc
+  dnsNames:
+    - pod-security-webhook.nukleros-admission-system.svc
+    - pod-security-webhook
+    - pod-security-webhook.svc.cluster.local
+    - pod-security-webhook.cluster.local
+    - localhost
+  duration: 2160h0m0s
+  ipAddresses:
+    - 127.0.0.1
+  issuerRef:
+    kind: ClusterIssuer
+    name: root-ca
+  renewBefore: 360h0m0s
+  secretName: pod-security-webhook-cert

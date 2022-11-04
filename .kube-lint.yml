@@ -1,0 +1,25 @@
+---
+checks:
+  exclude:
+    - "minimum-three-replicas"
+customChecks:
+  - name: "minimum-two-replicas"
+    template: "minimum-replicas"
+    params:
+      minReplicas: 2
+  - name: "k8s-recommended-labels-app"
+    template: "required-label"
+    params:
+      key: "app.kubernetes.io/name"
+    scope:
+      objectKinds:
+        - DeploymentLike
+    remediation: "Add a app.kubernetes.io/name label to the metadata.labels field"
+  - name: "k8s-recommended-labels-purpose"
+    template: "required-label"
+    params:
+      key: "app.kubernetes.io/purpose"
+    scope:
+      objectKinds:
+        - DeploymentLike
+    remediation: "Add a app.kubernetes.io/purpose label to the metadata.labels field"
