@@ -27,12 +27,6 @@ jobs:
           username: ${{ github.repository_owner }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Debug
-        shell: bash
-        run: |
-          ls
-          find . -type f
-
       - name: Run GoReleaser
         uses: goreleaser/goreleaser-action@v3
         with:
