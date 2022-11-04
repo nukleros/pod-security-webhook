@@ -118,8 +118,8 @@ applying kube-linter annotations to the resource that needs to specifically disa
 applying `ignore-check.kube-linter.io/<NAME>` using the appropraite name below.  Documentation
 on these can be found at https://docs.kubelinter.io/#/generated/checks:
 
-* host-ipc                           |
-* host-pid                           |
+* host-ipc
+* host-pid
 * host-network
 * privileged-container
 * privilege-escalation-container
@@ -173,7 +173,7 @@ const (
 )
 
 func ValidateMyNewThing(validation *Validation) (bool, error) {
-	if validation.Replicas < 3 {
+	if validation.PodSpec.Replicas < 3 {
 		return validation.Failed(fmt.Errorf("need a minimum of 3 replicas"))
 	}
 

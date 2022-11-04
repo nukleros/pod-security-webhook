@@ -1,9 +1,5 @@
 # do not store binary artifacts in git
 bin/
-output/
-
-# do not store imgpkg config in git as it will be auto-generated during pipeline run
-.imgpkg
 
 # do not commit archive files
 **/*.tar.gz
@@ -17,13 +13,5 @@ output/
 # ignore the .aws directory
 .aws
 
-# ignore the .jedi_shipper directory
-.jedi_shipper
-
 # ignore output.txt
 output.txt
-
-# ignore auto-generated release artifacts
-scanresults/*
-sbom/*
-RELEASE_v*.md
