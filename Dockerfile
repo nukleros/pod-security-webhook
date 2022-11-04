@@ -2,9 +2,6 @@
 FROM golang:1.18 as builder
 
 WORKDIR /workspace
-# DEBUG: REMOVEME
-RUN ls
-RUN find . -type f
 # Copy the Go Modules manifests
 COPY go.mod go.mod
 COPY go.sum go.sum

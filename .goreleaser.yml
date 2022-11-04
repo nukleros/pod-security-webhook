@@ -3,6 +3,15 @@ before:
   hooks:
     - go mod tidy
 
+builds:
+  - id: webhook
+    env:
+      - CGO_ENABLED=0
+    goos:
+      - linux
+    main: ./
+    binary: webhook
+
 checksum:
   name_template: 'checksums.txt'
 
