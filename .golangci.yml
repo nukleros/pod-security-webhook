@@ -7,8 +7,8 @@ linters-settings:
     statements: 50
   # TODO: turn this on at a later time.  currently seeing many incorrect errors
   #       related to this check.
-  gci:
-    local-prefixes: github.com/nukleros/pod-security-webhook
+  # gci:
+  #   local-prefixes: github.com/nukleros/pod-security-webhook
   goconst:
     min-len: 2
     min-occurrences: 2
@@ -27,10 +27,10 @@ linters-settings:
       - wrapperFunc
   gocyclo:
     min-complexity: 15
-  goimports:
-    local-prefixes: github.com/nukleros/pod-security-webhook
-  golint:
-    min-confidence: 0
+  # TODO: turn this on at a later time.  currently seeing many incorrect errors
+  #       related to this check.
+  # goimports:
+  #   local-prefixes: github.com/nukleros/pod-security-webhook
   gomnd:
     settings:
       mnd:
@@ -72,11 +72,11 @@ linters:
     - durationcheck
     - errcheck
     - errorlint
+    - exhaustive
     - exportloopref
     - forbidigo
     - forcetypeassert
     - funlen
-    - gci
     - gochecknoglobals
     - gochecknoinits
     - gocognit
@@ -85,9 +85,7 @@ linters:
     - gocyclo
     - godot
     - goerr113
-    - gofmt
     - goheader
-    - goimports
     - gomnd
     - gomoddirectives
     - gomodguard
@@ -122,10 +120,12 @@ linters:
     - wsl
 
     # ISSUES: the following have global issues and are disabled.
-    # - exhaustive
-    # - exhaustivestruct
-    # - godox
-    # - revive
+    # - exhaustruct: too restrictive on how to define structures
+    # - gci:         many incorrect errors found different between CI pipeline and locally
+    # - gofmt:       many incorrect errors found different between CI pipeline and locally
+    # - goimports:   many incorrect errors found different between CI pipeline and locally
+    # - godox:       allow TODOs in code
+    # - revive:      allow const type = value format for defining constants and variables
 
     # OVERRIDDEN: the following are overriden due to other linters being enabled.
     # - rowserrcheck
@@ -134,6 +134,7 @@ linters:
 
     # DEPRECATED: the following have been deprecated and disabled
     # - deadcode
+    # - exhaustivestruct
     # - golint
     # - ifshort
     # - interfacer
