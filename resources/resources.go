@@ -8,12 +8,11 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/nukleros/operator-builder-tools/pkg/resources"
 	appsv1 "k8s.io/api/apps/v1"
 	batchv1 "k8s.io/api/batch/v1"
 	corev1 "k8s.io/api/core/v1"
 	"sigs.k8s.io/controller-runtime/pkg/client"
-
-	"github.com/nukleros/operator-builder-tools/pkg/resources"
 )
 
 var (
@@ -21,9 +20,12 @@ var (
 )
 
 // GetPodSpec returns the pod specification for a given set of objects.
+//nolint:cyclop
+// TODO: we can improve the massive case statement logic.
 func GetPodSpec(resource client.Object) (*corev1.PodSpec, error) {
 	// we only want to validate application types
 	switch resource.GetObjectKind().GroupVersionKind().Kind {
+	//nolint:goconst
 	case "Pod":
 		pod := &corev1.Pod{}
 		if err := resources.ToTyped(pod, resource); err != nil {
@@ -72,6 +74,9 @@ func GetPodSpec(resource client.Object) (*corev1.PodSpec, error) {
 }
 
 // GetSecurityContext returns the security context for a container.
+//nolint:gocritic
+// TODO: pass container as pointer.  this has implications when passing in a loop
+//       as you need to avoid implicit memory aliasing in a loop to accomplish this.
 func GetSecurityContext(container corev1.Container) corev1.SecurityContext {
 	if container.SecurityContext == nil {
 		return corev1.SecurityContext{}

@@ -55,6 +55,8 @@ func DropCapabilities(validation *Validation) (bool, error) {
 
 		securityContext := resources.GetSecurityContext(container)
 
+		//nolint:nestif
+		// TODO: fix deeply nested if loop
 		if securityContext.Capabilities != nil {
 			if securityContext.Capabilities.Drop != nil {
 				if len(securityContext.Capabilities.Drop) > 0 {

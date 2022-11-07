@@ -15,13 +15,10 @@ import (
 
 	"github.com/apsdehal/go-logger"
 	"github.com/gorilla/mux"
-
 	admissionv1 "k8s.io/api/admission/v1"
 	corev1 "k8s.io/api/core/v1"
-
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
-
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/rest"
 	"k8s.io/client-go/tools/clientcmd"
@@ -55,7 +52,7 @@ type Webhook struct {
 	Port        int
 }
 
-type OperationStep func(http.ResponseWriter, *http.Request, *Operation) (error, int)
+type OperationStep func(http.ResponseWriter, *http.Request, *Operation) (int, error)
 
 type Operation struct {
 	Log         *logger.Logger
@@ -139,6 +136,7 @@ func NewWebhook() (*Webhook, error) {
 }
 
 // getClient returns a valid kubernetes client used for interacting with the cluster.
+// TODO: improve logic for retrieving kubernetes client.
 func getClient() (kubernetes.Interface, error) {
 	var config *rest.Config
 
@@ -151,6 +149,7 @@ func getClient() (kubernetes.Interface, error) {
 			return nil, fmt.Errorf("%w - error loading kubeconfig from environment variable KUBECONFIG: [%s]", err, kubeConfig)
 		}
 
+		//nolint:wrapcheck
 		return kubernetes.NewForConfig(config)
 	}
 
@@ -162,6 +161,7 @@ func getClient() (kubernetes.Interface, error) {
 				return nil, fmt.Errorf("%w - error loading kubeconfig from home path: [%s]", err, kubeConfig)
 			}
 
+			//nolint:wrapcheck
 			return kubernetes.NewForConfig(config)
 		}
 	}
@@ -171,6 +171,7 @@ func getClient() (kubernetes.Interface, error) {
 		return nil, fmt.Errorf("%w - error loading in-cluster kubernetes client config", err)
 	}
 
+	//nolint:wrapcheck
 	return kubernetes.NewForConfig(config)
 }
 
@@ -183,36 +184,36 @@ func (webhook *Webhook) writeErrorMessage(w http.ResponseWriter, msg error, code
 
 // performSetup performs prevalidation prior to actually running the tests to ensure that we
 // have a clean input.
-func (webhook *Webhook) performSetup(w http.ResponseWriter, r *http.Request, operation *Operation) (error, int) {
+func (webhook *Webhook) performSetup(w http.ResponseWriter, r *http.Request, operation *Operation) (returnCode int, err error) {
 	input := admissionv1.AdmissionReview{}
 
 	// decode the request input into a typed object
 	if err := json.NewDecoder(r.Body).Decode(&input); err != nil {
-		return fmt.Errorf("%w - unable to decode the POST request", err), http.StatusBadRequest
+		return http.StatusBadRequest, fmt.Errorf("%w - unable to decode the POST request", err)
 	}
 
 	// check for various nil or empty values
 	if input.Request == nil || input.Request.RequestKind == nil {
-		return fmt.Errorf("%w - request object is nil", ErrRequestInvalid), http.StatusBadRequest
+		return http.StatusBadRequest, fmt.Errorf("%w - request object is nil", ErrRequestInvalid)
 	}
 
 	// ensure the object in the request is not empty
 	if len(input.Request.Object.Raw) < 1 {
-		return fmt.Errorf("%w - empty object in request", ErrRequestInvalid), http.StatusBadRequest
+		return http.StatusBadRequest, fmt.Errorf("%w - empty object in request", ErrRequestInvalid)
 	}
 
 	// set fields that we need on the webhook object
 	object := unstructured.Unstructured{}
 	if err := json.Unmarshal(input.Request.Object.Raw, &object); err != nil {
-		return fmt.Errorf(
+		return http.StatusInternalServerError, fmt.Errorf(
 			"%w - unable to unmarshal request object to unstructured object",
 			err,
-		), http.StatusInternalServerError
+		)
 	}
 
 	podSpec, err := resources.GetPodSpec(&object)
 	if err != nil {
-		return fmt.Errorf("%w - error retrieving pod specification from object", err), http.StatusInternalServerError
+		return http.StatusInternalServerError, fmt.Errorf("%w - error retrieving pod specification from object", err)
 	}
 
 	operation.Review = &input
@@ -222,14 +223,14 @@ func (webhook *Webhook) performSetup(w http.ResponseWriter, r *http.Request, ope
 	// run the function to register the operation
 	operation.RegisterFunc()
 
-	return nil, -1
+	return -1, nil
 }
 
 // run runs through a webhook operation.  It returns any errors and an integer that represents
 // a status code.
 func (operation *Operation) run(webhook *Webhook, w http.ResponseWriter, r *http.Request) {
 	for _, handlerFunc := range operation.OperationStep {
-		operation.ResponseError, operation.StatusCode = handlerFunc(w, r, operation)
+		operation.StatusCode, operation.ResponseError = handlerFunc(w, r, operation)
 
 		if operation.ResponseError != nil {
 			if operation.StatusCode != -1 {

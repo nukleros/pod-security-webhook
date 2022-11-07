@@ -47,6 +47,7 @@ func main() {
 	webHook.Log.Info("received shutdown signal, shutting down web server")
 
 	if err := server.Shutdown(context.Background()); err != nil {
-		webHook.Log.FatalF("failed to shutdown web server gracefully", err)
+		webHook.Log.Fatal("failed to shutdown web server gracefully")
+		webHook.Log.Fatal(err.Error())
 	}
 }

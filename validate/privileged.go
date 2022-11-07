@@ -27,6 +27,8 @@ var (
 func RunAsNonRoot(validation *Validation) (bool, error) {
 	containersAsRoot := []corev1.Container{}
 
+	//nolint:gocritic
+	// TODO: pass by pointer or index here
 	for _, container := range validation.PodSpec.Containers {
 		runAsUser := resources.EffectiveRunAsUser(validation.PodSpec.SecurityContext, container.SecurityContext)
 		if runAsUser != nil && *runAsUser > 0 {
@@ -56,6 +58,8 @@ func RunAsNonRoot(validation *Validation) (bool, error) {
 func Privileged(validation *Validation) (bool, error) {
 	containersWithPrivileged := []corev1.Container{}
 
+	//nolint:gocritic
+	// TODO: pass by pointer or index here
 	for _, container := range validation.PodSpec.Containers {
 		if resources.GetSecurityContext(container).Privileged == nil {
 			continue
@@ -78,6 +82,8 @@ func Privileged(validation *Validation) (bool, error) {
 func AllowPrivilegeEscalation(validation *Validation) (bool, error) {
 	containersWithPrivileged := []corev1.Container{}
 
+	//nolint:gocritic
+	// TODO: pass by pointer or index here
 	for _, container := range validation.PodSpec.Containers {
 		if resources.GetSecurityContext(container).AllowPrivilegeEscalation == nil {
 			continue

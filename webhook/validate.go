@@ -106,17 +106,17 @@ func (operation *Operation) registerValidation(validation *validate.Validation) 
 
 // performValidate performs prevalidation prior to actually running the tests to ensure that we
 // have a clean input.
-func (webhook *Webhook) performValidate(w http.ResponseWriter, r *http.Request, operation *Operation) (error, int) {
+func (webhook *Webhook) performValidate(w http.ResponseWriter, r *http.Request, operation *Operation) (returnCode int, err error) {
 	for _, validation := range operation.Validations {
 		operation.Log.DebugF("performing validation: %s", validation.Name)
 
 		isValid, err := validation.Execute()
 		if !isValid || err != nil {
-			return fmt.Errorf("%s - %w", ErrValidationFailed, err), http.StatusForbidden
+			return http.StatusForbidden, fmt.Errorf("%s - %w", ErrValidationFailed, err)
 		}
 
 		operation.Log.DebugF("successfully completed validation: %s", validation.Name)
 	}
 
-	return nil, http.StatusAccepted
+	return http.StatusAccepted, nil
 }
