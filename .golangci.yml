@@ -5,8 +5,10 @@ linters-settings:
   funlen:
     lines: 100
     statements: 50
-  gci:
-    local-prefixes: github.com/nukleros/pod-security-webhook
+  # TODO: turn this on at a later time.  currently seeing many incorrect errors
+  #       related to this check.
+  # gci:
+  #   local-prefixes: github.com/nukleros/pod-security-webhook
   goconst:
     min-len: 2
     min-occurrences: 2
@@ -85,7 +87,7 @@ linters:
     - forbidigo
     - forcetypeassert
     - funlen
-    - gci
+    #- gci
     - gochecknoglobals
     - gochecknoinits
     - gocognit
@@ -95,7 +97,7 @@ linters:
     - godot
     #- godox
     - goerr113
-    - gofmt
+    # - gofmt
     - goheader
     - goimports
     - golint
