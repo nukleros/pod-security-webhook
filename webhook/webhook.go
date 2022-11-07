@@ -156,7 +156,7 @@ func getClient() (kubernetes.Interface, error) {
 	// read kubeconfig from home directory
 	if home := homedir.HomeDir(); home != "" {
 		kubeConfig = filepath.Join(home, ".kube", "config")
-		if _, err := os.Stat(kubeConfig); err == nil {
+		if _, err = os.Stat(kubeConfig); err == nil {
 			if config, err = clientcmd.BuildConfigFromFlags("", kubeConfig); err == nil {
 				return nil, fmt.Errorf("%w - error loading kubeconfig from home path: [%s]", err, kubeConfig)
 			}
@@ -184,7 +184,7 @@ func (webhook *Webhook) writeErrorMessage(w http.ResponseWriter, msg error, code
 
 // performSetup performs prevalidation prior to actually running the tests to ensure that we
 // have a clean input.
-func (webhook *Webhook) performSetup(w http.ResponseWriter, r *http.Request, operation *Operation) (returnCode int, err error) {
+func (webhook *Webhook) performSetup(w http.ResponseWriter, r *http.Request, operation *Operation) (int, error) {
 	input := admissionv1.AdmissionReview{}
 
 	// decode the request input into a typed object

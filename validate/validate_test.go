@@ -1,7 +1,6 @@
 // Copyright 2022 Nukleros
 // SPDX-License-Identifier: MIT
 
-//nolint:testpackage,gochecknoglobals
 package validate
 
 import (
