@@ -49,3 +49,12 @@ dockers:
       - "webhook/"
       - "resources/"
       - "validate/"
+
+# NOTE: earlier versions of goreleaser seemed to automatically include the docker images
+#       that were uploaded.  in the case that this behavior regresses, this may cause
+#       duplication in the release notes.
+release:
+  footer: |
+    ## Docker Images
+
+    * `docker pull ghcr.io/nukleros/pod-security-webhook:v{{ .Version }}`
