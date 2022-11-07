@@ -38,3 +38,14 @@ dockers:
       - "--label=org.opencontainers.image.licenses=MIT"
       - "--label=VERSION={{ .Version }}"
       - "--platform=linux/amd64"
+    # NOTE: we must explicitly include the files we need to copy in to the 
+    #       docker image, as goreleaser expects to only be copying its own
+    #       binary into the image.  because we do not build and release the
+    #       binary in an earlier step, this is necessary.
+    extra_files:
+      - "go.mod"
+      - "go.sum"
+      - "main.go"
+      - "webhook/"
+      - "resources/"
+      - "validate/"

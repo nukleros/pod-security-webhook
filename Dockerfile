@@ -3,6 +3,8 @@ FROM golang:1.18 as builder
 
 WORKDIR /workspace
 # Copy the Go Modules manifests
+# NOTE: when copying in new files, be sure to update the .goreleaser.yml file as those
+#       files also need to be explicitly added.
 COPY go.mod go.mod
 COPY go.sum go.sum
 # cache deps before building and copying source so that we don't need to re-download as much
@@ -10,6 +12,8 @@ COPY go.sum go.sum
 RUN go mod download
 
 # Copy the go source
+# NOTE: when copying in new files, be sure to update the .goreleaser.yml file as those
+#       files also need to be explicitly added.
 COPY main.go main.go
 COPY webhook/ webhook/
 COPY resources/ resources/
