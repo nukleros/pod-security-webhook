@@ -10,7 +10,7 @@ import (
 const (
 	defaultServiceAccountName = "default"
 
-	ValidateDefaultServiceAccountName = "default-service-account"
+	DefaultServiceAccountValidationName = "default-service-account"
 )
 
 var (
@@ -18,9 +18,9 @@ var (
 	ErrPodMissingServiceAccount = errors.New("unable to permit pod attempting to use empty service account")
 )
 
-// ValidateDefaultServiceAccount validates whether a pod is attempting to launch with the namespace
+// DefaultServiceAccount validates whether a pod is attempting to launch with the namespace
 // default service account.
-func ValidateDefaultServiceAccount(validation *Validation) (bool, error) {
+func DefaultServiceAccount(validation *Validation) (bool, error) {
 	if validation.PodSpec.ServiceAccountName == "" {
 		return validation.Failed(ErrPodMissingServiceAccount)
 	}

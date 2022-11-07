@@ -4,6 +4,7 @@
 package resources
 
 import (
+	"errors"
 	"fmt"
 	"strings"
 
@@ -15,10 +16,13 @@ import (
 	"github.com/nukleros/operator-builder-tools/pkg/resources"
 )
 
+var (
+	ErrValidatingKind = errors.New("error validating kind")
+)
+
 // GetPodSpec returns the pod specification for a given set of objects.
 func GetPodSpec(resource client.Object) (*corev1.PodSpec, error) {
 	// we only want to validate application types
-	// TODO: we may eventually want to validate other types such as Jobs and CronJobs
 	switch resource.GetObjectKind().GroupVersionKind().Kind {
 	case "Pod":
 		pod := &corev1.Pod{}
@@ -63,7 +67,7 @@ func GetPodSpec(resource client.Object) (*corev1.PodSpec, error) {
 
 		return &job.Spec.Template.Spec, nil
 	default:
-		return nil, fmt.Errorf("unable to validate kind: [%s]", resource.GetObjectKind().GroupVersionKind().Kind)
+		return nil, fmt.Errorf("%w - [%s]", ErrValidatingKind, resource.GetObjectKind().GroupVersionKind().Kind)
 	}
 }
 
@@ -95,7 +99,7 @@ func GetContainerNames(containers []corev1.Container) (names string) {
 func HasRequiredCapability(capabilities []corev1.Capability, oneOf ...string) bool {
 	for i := range capabilities {
 		for j := range oneOf {
-			if strings.ToLower(string(capabilities[i])) == strings.ToLower(oneOf[j]) {
+			if strings.EqualFold(string(capabilities[i]), oneOf[j]) {
 				return true
 			}
 		}
@@ -156,11 +160,7 @@ func GetAnnotation(resource client.Object, annotationKey string) string {
 // SkipViaAnnotations determines if a resource needs to be skipped due to the annotations
 // that it possesses.
 func SkipViaAnnotations(resource client.Object, overrideKey string) bool {
-	if GetAnnotation(resource, overrideKey) != "" {
-		return true
-	}
-
-	return false
+	return GetAnnotation(resource, overrideKey) != ""
 }
 
 // SkipViaOwnerReferences determines if a resource needs to be skipped due to the owner

@@ -1,6 +1,7 @@
 // Copyright 2022 Nukleros
 // SPDX-License-Identifier: MIT
 
+//nolint:dupl,testpackage
 package validate
 
 import (
@@ -93,7 +94,7 @@ func TestValidateRunAsNonRoot(t *testing.T) {
 		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
-			got, err := ValidateRunAsNonRoot(tt.args.validation)
+			got, err := RunAsNonRoot(tt.args.validation)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("ValidateRunAsNonRoot() error = %v, wantErr %v", err, tt.wantErr)
 
@@ -164,7 +165,7 @@ func TestValidatePrivileged(t *testing.T) {
 		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
-			got, err := ValidatePrivileged(tt.args.validation)
+			got, err := Privileged(tt.args.validation)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("ValidatePrivileged() error = %v, wantErr %v", err, tt.wantErr)
 
@@ -235,7 +236,7 @@ func TestValidateAllowPrivilegeEscalation(t *testing.T) {
 		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
-			got, err := ValidateAllowPrivilegeEscalation(tt.args.validation)
+			got, err := AllowPrivilegeEscalation(tt.args.validation)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("ValidateAllowPrivilegeEscalation() error = %v, wantErr %v", err, tt.wantErr)
 

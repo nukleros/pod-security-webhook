@@ -4,6 +4,7 @@
 package webhook
 
 import (
+	"fmt"
 	"net/http"
 	"os"
 
@@ -11,12 +12,16 @@ import (
 	"github.com/nukleros/pod-security-webhook/validate"
 )
 
+var (
+	ErrValidationFailed = "failed validation"
+)
+
 // validate runs through each step of the validation process.
 func (webhook *Webhook) validate(w http.ResponseWriter, r *http.Request) {
 	// create a new operation object for each instance of mutate
-	operation := &WebhookOperation{
+	operation := &Operation{
 		Log: webhook.Log,
-		OperationStep: []WebhookOperationStep{
+		OperationStep: []OperationStep{
 			webhook.performSetup,
 			webhook.performValidate,
 		},
@@ -30,28 +35,28 @@ func (webhook *Webhook) validate(w http.ResponseWriter, r *http.Request) {
 }
 
 // registerValidations registers all validations that are know to this webhook.
-func (operation *WebhookOperation) registerValidations() {
-	// validate no privilege escalation requests and no root containers unless overriden by an annotation or environment
+func (operation *Operation) registerValidations() {
+	// validate no privilege escalation requests and no root containers unless overridden by an annotation or environment
 	// variable
-	operation.registerValidation(validate.NewValidation(validate.ValidateRunAsNonRootName, validate.ValidateRunAsNonRoot))
-	operation.registerValidation(validate.NewValidation(validate.ValidatePrivilegedName, validate.ValidatePrivileged))
-	operation.registerValidation(validate.NewValidation(validate.ValidateAllowPrivilegeEscalationName, validate.ValidateAllowPrivilegeEscalation))
+	operation.registerValidation(validate.NewValidation(validate.RunAsNonRootValidationName, validate.RunAsNonRoot))
+	operation.registerValidation(validate.NewValidation(validate.PrivilegedValidationName, validate.Privileged))
+	operation.registerValidation(validate.NewValidation(validate.AllowPrivilegeEscalationValidationName, validate.AllowPrivilegeEscalation))
 
 	// validate items pertaining access to host resources
-	operation.registerValidation(validate.NewValidation(validate.ValidateHostPIDName, validate.ValidateHostPID))
-	operation.registerValidation(validate.NewValidation(validate.ValidateHostIPCName, validate.ValidateHostIPC))
-	operation.registerValidation(validate.NewValidation(validate.ValidateHostNetworkName, validate.ValidateHostNetwork))
+	operation.registerValidation(validate.NewValidation(validate.HostPIDValidationName, validate.HostPID))
+	operation.registerValidation(validate.NewValidation(validate.HostIPCValidationName, validate.HostIPC))
+	operation.registerValidation(validate.NewValidation(validate.HostNetworkValidationName, validate.HostNetwork))
 
 	// validate items pertaining to expanded container capabilities
-	operation.registerValidation(validate.NewValidation(validate.ValidateAddCapabilitiesName, validate.ValidateAddCapabilities))
-	operation.registerValidation(validate.NewValidation(validate.ValidateDropCapabilitiesName, validate.ValidateDropCapabilities))
+	operation.registerValidation(validate.NewValidation(validate.AddCapabilitiesValidationName, validate.AddCapabilities))
+	operation.registerValidation(validate.NewValidation(validate.DropCapabilitiesValidationName, validate.DropCapabilities))
 
 	// validate items pertaining to images
-	operation.registerValidation(validate.NewValidation(validate.ValidateImageRegistryName, validate.ValidateImageRegistry))
+	operation.registerValidation(validate.NewValidation(validate.ImageRegistryValidationName, validate.ImageRegistry))
 }
 
 // registerValidation registers an individual valiation for the webhook.
-func (operation *WebhookOperation) registerValidation(validation *validate.Validation) {
+func (operation *Operation) registerValidation(validation *validate.Validation) {
 	// do not register a validation if we have an environment variable override set explicitly to 'false'
 	if os.Getenv(validation.EnvironmetVariableOverride()) == validate.SkipValidationEnvValue {
 		operation.Log.Infof(
@@ -101,13 +106,13 @@ func (operation *WebhookOperation) registerValidation(validation *validate.Valid
 
 // performValidate performs prevalidation prior to actually running the tests to ensure that we
 // have a clean input.
-func (webhook *Webhook) performValidate(w http.ResponseWriter, r *http.Request, operation *WebhookOperation) (error, int) {
+func (webhook *Webhook) performValidate(w http.ResponseWriter, r *http.Request, operation *Operation) (error, int) {
 	for _, validation := range operation.Validations {
 		operation.Log.DebugF("performing validation: %s", validation.Name)
 
 		isValid, err := validation.Execute()
 		if !isValid || err != nil {
-			return err, http.StatusForbidden
+			return fmt.Errorf("%s - %w", ErrValidationFailed, err), http.StatusForbidden
 		}
 
 		operation.Log.DebugF("successfully completed validation: %s", validation.Name)

@@ -1,6 +1,7 @@
 // Copyright 2022 Nukleros
 // SPDX-License-Identifier: MIT
 
+//nolint:dupl,testpackage
 package validate
 
 import (
@@ -67,7 +68,7 @@ func TestValidateDefaultServiceAccount(t *testing.T) {
 		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
-			got, err := ValidateDefaultServiceAccount(tt.args.validation)
+			got, err := DefaultServiceAccount(tt.args.validation)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("ValidateDefaultServiceAccount() error = %v, wantErr %v", err, tt.wantErr)
 

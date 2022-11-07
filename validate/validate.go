@@ -43,7 +43,7 @@ func (validation *Validation) Execute() (bool, error) {
 func (validation *Validation) Failed(parentErr error, failedContainers ...corev1.Container) (bool, error) {
 	if len(failedContainers) > 0 {
 		return false, fmt.Errorf(
-			"failed validation %s for %s - %s for containers %s",
+			"failed validation %s for %s - %w for containers %s",
 			validation.Name,
 			strings.ToLower(resources.ToString(validation.Resource)),
 			parentErr,
@@ -52,7 +52,7 @@ func (validation *Validation) Failed(parentErr error, failedContainers ...corev1
 	}
 
 	return false, fmt.Errorf(
-		"failed validation %s for %s - %s",
+		"failed validation %s for %s - %w",
 		validation.Name,
 		strings.ToLower(resources.ToString(validation.Resource)),
 		parentErr,
