@@ -13,6 +13,7 @@ const statusOkMessage = `{"msg": "server is healthy"}`
 // healthCheck implements a simple health check that returns a 200 ok response.
 func (webhook *Webhook) healthCheck(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
+
 	_, err := fmt.Fprint(w, statusOkMessage)
 	if err != nil {
 		webhook.Log.ErrorF("%s - error writing response", err)

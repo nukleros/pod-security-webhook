@@ -67,7 +67,7 @@ func TestValidateHostPID(t *testing.T) {
 		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
-			got, err := ValidateHostPID(tt.args.validation)
+			got, err := HostPID(tt.args.validation)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("ValidateHostPID() error = %v, wantErr %v", err, tt.wantErr)
 
@@ -138,7 +138,7 @@ func TestValidateHostIPC(t *testing.T) {
 		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
-			got, err := ValidateHostIPC(tt.args.validation)
+			got, err := HostIPC(tt.args.validation)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("ValidateHostIPC() error = %v, wantErr %v", err, tt.wantErr)
 
@@ -209,7 +209,7 @@ func TestValidateHostNetwork(t *testing.T) {
 		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
-			got, err := ValidateHostNetwork(tt.args.validation)
+			got, err := HostNetwork(tt.args.validation)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("ValidateHostNetwork() error = %v, wantErr %v", err, tt.wantErr)
 

@@ -28,7 +28,7 @@ deploy-cert-manager:
 #
 # tests
 #
-GOLANGCI_LINT_VERSION ?= v1.46.2
+GOLANGCI_LINT_VERSION ?= v1.50.1
 install-linter:
 	go install github.com/golangci/golangci-lint/cmd/golangci-lint@$(GOLANGCI_LINT_VERSION)
 

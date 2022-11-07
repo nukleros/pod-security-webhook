@@ -12,8 +12,8 @@ import (
 )
 
 const (
-	ValidateAddCapabilitiesName  = "verify-add-container-capabilities"
-	ValidateDropCapabilitiesName = "verify-drop-container-capabilities"
+	AddCapabilitiesValidationName  = "verify-add-container-capabilities"
+	DropCapabilitiesValidationName = "verify-drop-container-capabilities"
 )
 
 var (
@@ -21,11 +21,13 @@ var (
 	ErrContainerMissingDropCapabilities = errors.New("unable to permit container missing either drop capabilities of ALL or NET_RAW")
 )
 
-// ValidateAddCapabilities validates whether a pod spec has the appropriate drop capabilities set.
-func ValidateAddCapabilities(validation *Validation) (bool, error) {
+// AddCapabilities validates whether a pod spec has the appropriate drop capabilities set.
+func AddCapabilities(validation *Validation) (bool, error) {
 	containersRequestingAddCapabilities := []corev1.Container{}
 
-	for _, container := range validation.PodSpec.Containers {
+	for i := range validation.PodSpec.Containers {
+		container := validation.PodSpec.Containers[i]
+
 		securityContext := resources.GetSecurityContext(container)
 
 		if securityContext.Capabilities != nil {
@@ -44,13 +46,17 @@ func ValidateAddCapabilities(validation *Validation) (bool, error) {
 	return validation.Failed(ErrContainerRequestAddCapabilities, containersRequestingAddCapabilities...)
 }
 
-// ValidateDropCapabilities validates whether a pod spec has the appropriate drop capabilities set.
-func ValidateDropCapabilities(validation *Validation) (bool, error) {
+// DropCapabilities validates whether a pod spec has the appropriate drop capabilities set.
+func DropCapabilities(validation *Validation) (bool, error) {
 	containersMissingDropCapabilities := []corev1.Container{}
 
-	for _, container := range validation.PodSpec.Containers {
+	for i := range validation.PodSpec.Containers {
+		container := validation.PodSpec.Containers[i]
+
 		securityContext := resources.GetSecurityContext(container)
 
+		//nolint:nestif
+		// TODO: fix deeply nested if loop
 		if securityContext.Capabilities != nil {
 			if securityContext.Capabilities.Drop != nil {
 				if len(securityContext.Capabilities.Drop) > 0 {

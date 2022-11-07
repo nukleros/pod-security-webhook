@@ -15,6 +15,17 @@ var (
 	nonRootUser int64 = 1234
 )
 
+func defaultServiceAccountPodSpec() *corev1.PodSpec {
+	return &corev1.PodSpec{
+		ServiceAccountName: defaultServiceAccountName,
+		Containers: []corev1.Container{
+			{
+				Name: defaultServiceAccountName,
+			},
+		},
+	}
+}
+
 func emptyPodSpec() *corev1.PodSpec {
 	return &corev1.PodSpec{
 		Containers: []corev1.Container{{Name: "empty"}},
@@ -30,6 +41,7 @@ func validPodSpec() *corev1.PodSpec {
 			RunAsNonRoot: &truePointer,
 			RunAsUser:    &nonRootUser,
 		},
+		ServiceAccountName: "valid",
 		Containers: []corev1.Container{
 			{
 				Name: "valid",

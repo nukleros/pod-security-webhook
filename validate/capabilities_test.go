@@ -67,7 +67,7 @@ func TestValidateAddCapabilities(t *testing.T) {
 		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
-			got, err := ValidateAddCapabilities(tt.args.validation)
+			got, err := AddCapabilities(tt.args.validation)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("ValidateAddCapabilities() error = %v, wantErr %v", err, tt.wantErr)
 
@@ -138,7 +138,7 @@ func TestValidateDropCapabilities(t *testing.T) {
 		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
-			got, err := ValidateDropCapabilities(tt.args.validation)
+			got, err := DropCapabilities(tt.args.validation)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("ValidateDropCapabilities() error = %v, wantErr %v", err, tt.wantErr)
 

@@ -12,9 +12,9 @@ import (
 )
 
 const (
-	ValidateRunAsNonRootName             = "run-as-non-root"
-	ValidatePrivilegedName               = "privileged-container"
-	ValidateAllowPrivilegeEscalationName = "privilege-escalation-container"
+	RunAsNonRootValidationName             = "run-as-non-root"
+	PrivilegedValidationName               = "privileged-container"
+	AllowPrivilegeEscalationValidationName = "privilege-escalation-container"
 )
 
 var (
@@ -23,10 +23,12 @@ var (
 	ErrContainerAllowPrivileged = errors.New("unable to permit container which allows privileged escalation")
 )
 
-// ValidateRunAsNonRoot validates whether a container or pod is set to enforce running as a non-root user.
-func ValidateRunAsNonRoot(validation *Validation) (bool, error) {
+// RunAsNonRoot validates whether a container or pod is set to enforce running as a non-root user.
+func RunAsNonRoot(validation *Validation) (bool, error) {
 	containersAsRoot := []corev1.Container{}
 
+	//nolint:gocritic
+	// TODO: pass by pointer or index here
 	for _, container := range validation.PodSpec.Containers {
 		runAsUser := resources.EffectiveRunAsUser(validation.PodSpec.SecurityContext, container.SecurityContext)
 		if runAsUser != nil && *runAsUser > 0 {
@@ -52,10 +54,12 @@ func ValidateRunAsNonRoot(validation *Validation) (bool, error) {
 	return validation.Failed(ErrPodRunAsNonRoot, containersAsRoot...)
 }
 
-// ValidatePrivileged validates whether a pod spec has the privileged value set.
-func ValidatePrivileged(validation *Validation) (bool, error) {
+// Privileged validates whether a pod spec has the privileged value set.
+func Privileged(validation *Validation) (bool, error) {
 	containersWithPrivileged := []corev1.Container{}
 
+	//nolint:gocritic
+	// TODO: pass by pointer or index here
 	for _, container := range validation.PodSpec.Containers {
 		if resources.GetSecurityContext(container).Privileged == nil {
 			continue
@@ -73,11 +77,13 @@ func ValidatePrivileged(validation *Validation) (bool, error) {
 	return validation.Failed(ErrContainerPrivileged, containersWithPrivileged...)
 }
 
-// ValidateAllowPrivilegeEscalation validates whether a container is allowing
+// AllowPrivilegeEscalation validates whether a container is allowing
 // privilege escalation.
-func ValidateAllowPrivilegeEscalation(validation *Validation) (bool, error) {
+func AllowPrivilegeEscalation(validation *Validation) (bool, error) {
 	containersWithPrivileged := []corev1.Container{}
 
+	//nolint:gocritic
+	// TODO: pass by pointer or index here
 	for _, container := range validation.PodSpec.Containers {
 		if resources.GetSecurityContext(container).AllowPrivilegeEscalation == nil {
 			continue

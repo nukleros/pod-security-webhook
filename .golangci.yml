@@ -5,8 +5,10 @@ linters-settings:
   funlen:
     lines: 100
     statements: 50
-  gci:
-    local-prefixes: github.com/nukleros/operator-builder
+  # TODO: turn this on at a later time.  currently seeing many incorrect errors
+  #       related to this check.
+  # gci:
+  #   local-prefixes: github.com/nukleros/pod-security-webhook
   goconst:
     min-len: 2
     min-occurrences: 2
@@ -25,10 +27,10 @@ linters-settings:
       - wrapperFunc
   gocyclo:
     min-complexity: 15
-  goimports:
-    local-prefixes: github.com/nukleros/operator-builder
-  golint:
-    min-confidence: 0
+  # TODO: turn this on at a later time.  currently seeing many incorrect errors
+  #       related to this check.
+  # goimports:
+  #   local-prefixes: github.com/nukleros/pod-security-webhook
   gomnd:
     settings:
       mnd:
@@ -40,13 +42,6 @@ linters-settings:
           - return
   govet:
     check-shadowing: true
-    settings:
-      printf:
-        funcs:
-          - (github.com/nukleros/operator-builder/pkg/logutils.Log).Infof
-          - (github.com/nukleros/operator-builder/logutils.Log).Warnf
-          - (github.com/nukleros/operator-builder/pkg/logutils.Log).Errorf
-          - (github.com/nukleros/operator-builder/pkg/logutils.Log).Fatalf
   lll:
     line-length: 140
   maligned:
@@ -61,7 +56,6 @@ linters-settings:
   staticcheck:
     checks:
       - all
-      - '-SA1019' # disable strings.Title check
 
 linters:
   # please, do not use `enable-all`: it's deprecated and will be removed soon.
@@ -71,21 +65,18 @@ linters:
   enable:
     - asciicheck
     - bodyclose
-    #- cyclop
-    - deadcode
+    - cyclop
     - depguard
     - dogsled
     - dupl
     - durationcheck
     - errcheck
     - errorlint
-    #- exhaustive
-    #- exhaustivestruct
+    - exhaustive
     - exportloopref
     - forbidigo
     - forcetypeassert
     - funlen
-    - gci
     - gochecknoglobals
     - gochecknoinits
     - gocognit
@@ -93,13 +84,8 @@ linters:
     - gocritic
     - gocyclo
     - godot
-    - godox
     - goerr113
-    # disable due to false positives in detecting gofmt -s
-    #- gofmt
     - goheader
-    - goimports
-    - golint
     - gomnd
     - gomoddirectives
     - gomodguard
@@ -107,10 +93,8 @@ linters:
     - gosec
     - gosimple
     - govet
-    - ifshort
     - importas
     - ineffassign
-    - interfacer
     - lll
     - makezero
     - misspell
@@ -122,11 +106,7 @@ linters:
     - paralleltest
     - prealloc
     - predeclared
-    #- revive
-    - rowserrcheck
-    - sqlclosecheck
     - staticcheck
-    - structcheck
     - stylecheck
     - testpackage
     - thelper
@@ -135,34 +115,43 @@ linters:
     - unconvert
     - unparam
     - unused
-    - varcheck
-    - wastedassign
     - whitespace
     - wrapcheck
     - wsl
 
+    # ISSUES: the following have global issues and are disabled.
+    # - exhaustruct: too restrictive on how to define structures
+    # - gci:         many incorrect errors found different between CI pipeline and locally
+    # - gofmt:       many incorrect errors found different between CI pipeline and locally
+    # - goimports:   many incorrect errors found different between CI pipeline and locally
+    # - godox:       allow TODOs in code
+    # - revive:      allow const type = value format for defining constants and variables
+
+    # OVERRIDDEN: the following are overriden due to other linters being enabled.
+    # - rowserrcheck
+    # - sqlclosecheck
+    # - wastedassign
+
+    # DEPRECATED: the following have been deprecated and disabled
+    # - deadcode
+    # - exhaustivestruct
+    # - golint
+    # - ifshort
+    # - interfacer
+    # - structcheck
+    # - varcheck
+
 issues:
-  # Excluding configuration per-path, per-linter, per-text and per-source
+  # excluding configuration per-path, per-linter, per-text and per-source
   exclude-rules:
     - path: _test\.go
       linters:
         - gomnd
         - funlen
         - scopelint
-    - path: internal/commands/*\.go
-      linters:
+        - dupl
         - gochecknoglobals
-
-    # https://github.com/go-critic/go-critic/issues/926
-    - linters:
-        - gocritic
-      text: "unnecessaryDefer:"
-  exclude:
-    - 'declaration of "(err|ctx)" shadows declaration at'
+        - testpackage
 
 run:
-  skip-dirs:
-    - test/testdata_etc
-    - internal/cache
-    - internal/renameio
-    - internal/robustio
+  skip-dirs: []

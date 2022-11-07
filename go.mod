@@ -6,10 +6,10 @@ require (
 	github.com/apsdehal/go-logger v0.0.0-20190515212710-b0d6ccfee0e6
 	github.com/gorilla/mux v1.8.0
 	github.com/nukleros/operator-builder-tools v0.3.1
-	k8s.io/api v0.25.2
-	k8s.io/apimachinery v0.25.2
-	k8s.io/client-go v0.25.2
-	sigs.k8s.io/controller-runtime v0.13.0
+	k8s.io/api v0.25.3
+	k8s.io/apimachinery v0.25.3
+	k8s.io/client-go v0.25.3
+	sigs.k8s.io/controller-runtime v0.13.1
 )
 
 require (
